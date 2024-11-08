@@ -8,11 +8,11 @@ import { state, setState } from "react";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
+  
     <ShopProvider value={{ state, setState }}>
       <App />
     </ShopProvider>
-  </React.StrictMode>
+ 
 );
 
 // If you want to start measuring performance in your app, pass a function

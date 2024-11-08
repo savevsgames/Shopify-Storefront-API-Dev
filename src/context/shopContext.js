@@ -30,50 +30,102 @@ export class ShopProvider extends Component {
   // ComponentDidMount is a lifecycle method that runs after the first render
   // It means the component has been mounted and is ready to go
   componentDidMount() {
-    this.createCheckout();
-    // this.fetchAllProducts();
+    const checkoutId = localStorage.getItem("checkout_id");
+    if (checkoutId) {
+      // If a checkout exists, we will fetch the checkout from local storage
+      this.fetchCheckout(localStorage.checkout_id);
+    } else {
+      // If a checkout does not exist, we will create a new
+      this.createCheckout();
+    }
   }
 
   //  We create a checkout and allow the user to store the cart in their local storage
   createCheckout = async () => {
-    const checkout = client.checkout.create();
+    const checkout = await client.checkout.create();
+    // checkout object has id property => save it to local storage as key-value pair
     localStorage.setItem("checkout_id", checkout.id);
     this.setState({ checkout: checkout });
     console.log(checkout);
   };
 
-  fetchCheckout = async () => {};
+  fetchCheckout = async (checkoutId) => {
+    // We fetch the checkout using the checkout id
+    try {
+      const checkout = await client.checkout.fetch(checkoutId);
+      this.setState({ checkout: checkout });
+      console.log(checkout);
+    } catch (error) {
+      console.error({ message: "Error fetching checkout" }, error);
+    }
+  };
 
-  addItemToCheckout = async () => {};
+  addItemToCheckout = async (variantId, quantity) => {
+    const lineItemsToAdd = [
+      {
+        variantId: variantId,
+        quantity: parseInt(quantity, 10),
+        // customAttributes: [{ key: "MyKey", value: "MyValue" }], - option to add custom attributes
+      },
+    ];
+    // Now we can create a checkout to update the state with the new line items
+    // checkout.addLineItems is a prebuilt Shopify checkout method that takes the checkout id and line items to add
+    // Since we want the THIS checkout we grab its id from state
+    const checkout = await client.checkout.addLineItems(
+      this.state.checkout.id,
+      lineItemsToAdd
+    );
+    // We update the state with the new checkout
+    this.setState({ checkout: checkout });
+    // Open the cart when a new Line Item is added
+    this.openCart();
+  };
 
-  removeLineItem = async (LineItemIdsToRemove) => {};
+  removeLineItem = async (lineItemIdsToRemove) => {
+    const checkout = await client.checkout.removeLineItems(
+      this.state.checkout.id,
+      lineItemIdsToRemove
+    );
+    this.setState({ checkout: checkout });
+    // Close the cart when a Line Item is removed
+    this.closeCart();
+  };
 
   fetchAllProducts = async () => {
-    const products = client.product.fetchAll();
+    const products = await client.product.fetchAll();
     this.setState({ products: products }); // Array of all product objects
     console.log(products);
   };
 
   fetchProductWithHandle = async (handle) => {
-    const product = client.product.fetchByHandle(handle);
+    const product = await client.product.fetchByHandle(handle);
     this.setState({ product: product }); // Single product object
     console.log(product);
   };
 
-  closeCart = () => {};
+  closeCart = () => {
+    this.setState({ isCartOpen: false });
+  };
 
-  openCart = () => {};
+  openCart = () => {
+    this.setState({ isCartOpen: true });
+  };
 
-  closeMenu = () => {};
+  closeMenu = () => {
+    this.setState({ isMenuOpen: false });
+  };
 
-  openMenu = () => {};
+  openMenu = () => {
+    this.setState({ isMenuOpen: true });
+  };
 
   render() {
     return (
       <ShopContext.Provider
         value={{
           ...this.state,
-          createCheckout: this.createCheckout,
+          addItemToCheckout: this.addItemToCheckout,
+          removeLineItem: this.removeLineItem,
           fetchAllProducts: this.fetchAllProducts,
           fetchProductWithHandle: this.fetchProductWithHandle,
           openCart: this.openCart,
