@@ -13,6 +13,8 @@ import {
   Center,
   Button,
 } from "@chakra-ui/react";
+import TextHeading from "../components/TextHeading";
+import { formatPrice } from "../utils/utilFunctions";
 
 const ProductPage = () => {
   // Handle will be used to fetch the product
@@ -31,23 +33,62 @@ const ProductPage = () => {
 
   console.log(product);
 
+  const formattedPrice = formatPrice(product.variants[0].price.amount);
+
   return (
     <Box>
-      <Grid templateColumns="repeat(2, 1fr)">
-        <Image src={product.images[0].src} />
-        <Box>
-          <Heading>{product.title}</Heading>
-          <Text>${product.variants[0].price.amount}</Text>
-          <Text>{product.description}</Text>
+      <TextHeading
+        heading="Don't Wait"
+        content="You Can Bomb Your Bath Today!"
+      />
+      <Grid
+        templateColumns={["repeat(1, 1fr)", "repeat(2, 1fr)"]}
+        m={"auto"}
+        gap={4}
+        p={4}
+      >
+        <Flex justifyContent={"center"} alignItems={"center"}>
+          <Image
+            src={product.images[0].src}
+            m={4}
+            w={"100%"}
+            borderRadius={"2rem"}
+            borderLeft={"5px solid #333b41"}
+            boxShadow={"2px 2px 5px 2px #333b41"}
+          />
+        </Flex>
+        <Flex
+          justifyContent={"space-around"}
+          alignItems={"center"}
+          flexDirection={"column"}
+          p={4}
+          backgroundColor={"#ebebeb"}
+          borderRadius={"2rem"}
+          borderLeft={"5px solid #333b41"}
+          boxShadow={"2px 2px 5px 2px #333b41"}
+        >
+          <Heading fontWeight={"bold"} fontSize={["lg", "4xl"]}>
+            {product.title}
+          </Heading>
+          <Text fontWeight={"bold"} fontSize={["md", "2xl"]}>
+            ${formattedPrice} {product.variants[0].price.currencyCode}
+          </Text>
+          <Text color={"gray.500"} fontSize={["md", "lg"]}>
+            {product.description}
+          </Text>
           {/* addItemToCheckout can manage state for product variant selected - quantity is the second argument => default of 1 */}
           <Button
+            border={"2px solid black"}
+            backgroundColor={"#333b41"}
+            color={"white"}
+            _hover={{ bg: "#ff8b21", color: "black" }}
             onClick={() => {
               addItemToCheckout(product.variants[0].id, 1);
             }}
           >
             Add to Cart
           </Button>
-        </Box>
+        </Flex>
       </Grid>
     </Box>
   );

@@ -25,6 +25,7 @@ export class ShopProvider extends Component {
     checkout: {},
     isCartOpen: false,
     isMenuOpen: false,
+    isLoading: true,
   };
 
   // ComponentDidMount is a lifecycle method that runs after the first render
@@ -32,11 +33,13 @@ export class ShopProvider extends Component {
   componentDidMount() {
     const checkoutId = localStorage.getItem("checkout_id");
     if (checkoutId) {
-      // If a checkout exists, we will fetch the checkout from local storage
-      this.fetchCheckout(localStorage.checkout_id);
+      this.fetchCheckout(checkoutId).then(() => {
+        this.setState({ isLoading: false });
+      });
     } else {
-      // If a checkout does not exist, we will create a new
-      this.createCheckout();
+      this.createCheckout().then(() => {
+        this.setState({ isLoading: false });
+      });
     }
   }
 
@@ -87,8 +90,10 @@ export class ShopProvider extends Component {
       lineItemIdsToRemove
     );
     this.setState({ checkout: checkout });
-    // Close the cart when a Line Item is removed
-    this.closeCart();
+    if (checkout.lineItems.length === 0) {
+      // Close the cart when all Line Items are removed
+      this.closeCart();
+    }
   };
 
   fetchAllProducts = async () => {
